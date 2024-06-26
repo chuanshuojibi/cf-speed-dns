@@ -50,8 +50,20 @@ def get_dns_records(name):
     print("Failed to parse the response as JSON.")
     return []
 
-  # 使用字符串比较获取 DNS 记录 ID
-  def_info = [record['id'] for record in records if isinstance(record, dict) and record['name'] == name] 
+  def_info = []
+
+  # 遍历每个 DNS 记录
+  for record in records:
+    print(f"Checking DNS record: {record}")  # 输出每个记录信息
+
+    # 检查记录类型和名称
+    if isinstance(record, dict) and record['name'] == name:
+      print(f"Found matching DNS record: {record}")  # 输出匹配记录信息
+      def_info.append(record['id'])  # 添加匹配记录的 ID
+
+  if not def_info:
+    print(f"No matching DNS record found for name: {name}")  # 记录未找到提示
+
   return def_info
 
 # 更新 DNS 记录
