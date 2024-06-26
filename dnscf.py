@@ -19,19 +19,24 @@ headers = {
     'Content-Type': 'application/json'
 }
 
-def get_cf_speed_test_ip(timeout=10, max_retries=5):
-    for attempt in range(max_retries):
-        try:
-            # 发送 GET 请求，设置超时
-            response = requests.get('https://ip.164746.xyz/ipTop.html', timeout=timeout)
-            # 检查响应状态码
-            if response.status_code == 200:
-                return response.text
-        except Exception as e:
-            traceback.print_exc()
-            print(f"get_cf_speed_test_ip Request failed (attempt {attempt + 1}/{max_retries}): {e}")
-    # 如果所有尝试都失败，返回 None 或者抛出异常，根据需要进行处理
-    return None
+def get_dns_records(name):
+    url = f'https://api.cloudflare.com/client/v4/zones/{CF_ZONE_ID}/dns_records'
+    response = requests.get(url, headers=headers)
+    
+    print("Response Content:", response.text)  # 添加此行以查看响应内容
+    
+    if response.status_code != 200:
+        print(f"Request failed with status {response.status_code}. Response content: {response.text}")
+        return []
+    
+    try:
+        records = response.json().get('result', [])
+    except ValueError as e:
+        print(f"Failed to parse JSON response: {e}")
+        return []
+    
+    def_info = [record['id'] for record in records if isinstance(record, dict) and record.get('name') == name]
+    return def_info
 
 # 获取 DNS 记录
 def get_dns_records(name):
