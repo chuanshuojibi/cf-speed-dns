@@ -38,21 +38,20 @@ def get_dns_records(name):
     url = f'https://api.cloudflare.com/client/v4/zones/{CF_ZONE_ID}/dns_records'
     response = requests.get(url, headers=headers)
     
-    print("Response Content:", response.text)  # 添加此行以查看响应内容
+    print("API Response Content:", response.text)
     
     if response.status_code != 200:
-        print(f"Request failed with status {response.status_code}. Response content: {response.text}")
+        print(f"Failed to fetch DNS records. Status code: {response.status_code}")
         return []
     
     try:
         records = response.json().get('result', [])
-    except ValueError as e:
-        print(f"Failed to parse JSON response: {e}")
+    except ValueError:
+        print("Failed to parse the response as JSON.")
         return []
     
-    def_info = [record['id'] for record in records if isinstance(record, dict) and record.get('name') == name]
+    def_info = [record['id'] for record in records if isinstance(record, dict) and 'name' in record and record['name'] == name]
     return def_info
-
 # 更新 DNS 记录
 def update_dns_record(record_id, name, cf_ip):
     url = f'https://api.cloudflare.com/client/v4/zones/{CF_ZONE_ID}/dns_records/{record_id}'
