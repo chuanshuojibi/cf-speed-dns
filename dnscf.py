@@ -13,7 +13,6 @@ CF_DNS_NAME     =   os.environ["CF_DNS_NAME"]
 PUSHPLUS_TOKEN  =   os.environ["PUSHPLUS_TOKEN"]
 
 
-
 headers = {
     'Authorization': f'Bearer {CF_API_TOKEN}',
     'Content-Type': 'application/json'
@@ -35,36 +34,18 @@ def get_cf_speed_test_ip(timeout=10, max_retries=5):
 
 # 获取 DNS 记录
 def get_dns_records(name):
-  url = f'https://api.cloudflare.com/client/v4/zones/{CF_ZONE_ID}/dns_records'
-  response = requests.get(url, headers=headers)
+    def_info = []
+    url = f'https://api.cloudflare.com/client/v4/zones/{CF_ZONE_ID}/dns_records'
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        records = response.json()['result']
+        for record in records:
+            if record['name'] == name:
+                def_info.append(record['id'])
+        return def_info
+    else:
+        print('Error fetching DNS records:', response.text)
 
-  print("API Response Content:", response.text)
-
- if response.status_code != 200:
-    print(f"Failed to fetch DNS records. Status code: {response.status_code}")
-    return []
-
-  try:
-    records = response.json().get('result', [])
-  except ValueError:
-    print("Failed to parse the response as JSON.")
-    return []
-
-  def_info = []
-
-  # 遍历每个 DNS 记录
-  for record in records:
-    print(f"Checking DNS record: {record}")  # 输出每个记录信息
-
-    # 检查记录类型和名称
-    if isinstance(record, dict) and record['name'] == name:
-      print(f"Found matching DNS record: {record}")  # 输出匹配记录信息
-      def_info.append(record['id'])  # 添加匹配记录的 ID
-
-  if not def_info:
-    print(f"No matching DNS record found for name: {name}")  # 记录未找到提示
-
-  return def_info
 # 更新 DNS 记录
 def update_dns_record(record_id, name, cf_ip):
     url = f'https://api.cloudflare.com/client/v4/zones/{CF_ZONE_ID}/dns_records/{record_id}'
@@ -100,15 +81,24 @@ def push_plus(content):
     headers = {'Content-Type': 'application/json'}
     requests.post(url, data=body, headers=headers)
 
-# 主函数
 def main():
     # 获取最新优选IP
     ip_addresses_str = get_cf_speed_test_ip()
     ip_addresses = ip_addresses_str.split(',')
     dns_records = get_dns_records(CF_DNS_NAME)
     push_plus_content = []
-    # 遍历 IP 地址列表
-    for index, ip_address in enumerate(ip_addresses):
+
+    # 检查 dns_records 是否为空
+    if not dns_records:
+        print("Error: No DNS records found for", CF_DNS_NAME)
+        return
+
+    # 确保 IP 地址数量不超过域名记录数量
+    num_ips = min(len(ip_addresses), len(dns_records))
+
+    # 遍历有效 IP 地址
+    for index in range(num_ips):
+        ip_address = ip_addresses[index]
         # 执行 DNS 变更
         dns = update_dns_record(dns_records[index], CF_DNS_NAME, ip_address)
         push_plus_content.append(dns)
