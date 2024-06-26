@@ -18,7 +18,7 @@ headers = {
     'Authorization': f'Bearer {CF_API_TOKEN}',
     'Content-Type': 'application/json'
 }
-
+# 获取 DNS 记录
 def get_dns_records(name):
     url = f'https://api.cloudflare.com/client/v4/zones/{CF_ZONE_ID}/dns_records'
     response = requests.get(url, headers=headers)
@@ -38,18 +38,7 @@ def get_dns_records(name):
     def_info = [record['id'] for record in records if isinstance(record, dict) and record.get('name') == name]
     return def_info
 
-# 获取 DNS 记录
-def get_dns_records(name):
-    url = f'https://api.cloudflare.com/client/v4/zones/{CF_ZONE_ID}/dns_records'
-    response = requests.get(url, headers=headers)
-    
-    if response.status_code != 200:
-        print(f"Error fetching DNS records. Status code: {response.status_code}")
-        return []
-    
-    records = response.json().get('result', [])  # 使用get方法避免KeyError
-    def_info = [record['id'] for record in records if isinstance(record, dict) and record.get('name') == name]
-    return def_info
+
     
 # 更新 DNS 记录
 def update_dns_record(record_id, name, cf_ip):
