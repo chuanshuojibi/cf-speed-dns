@@ -35,23 +35,25 @@ def get_cf_speed_test_ip(timeout=10, max_retries=5):
 
 # 获取 DNS 记录
 def get_dns_records(name):
-    url = f'https://api.cloudflare.com/client/v4/zones/{CF_ZONE_ID}/dns_records'
-    response = requests.get(url, headers=headers)
-    
-    print("API Response Content:", response.text)
-    
-    if response.status_code != 200:
-        print(f"Failed to fetch DNS records. Status code: {response.status_code}")
-        return []
-    
-    try:
-        records = response.json().get('result', [])
-    except ValueError:
-        print("Failed to parse the response as JSON.")
-        return []
-    
-    def_info = [record['id'] for record in records if isinstance(record, dict) and 'name' in record and record['name'] == name]
-    return def_info
+  url = f'https://api.cloudflare.com/client/v4/zones/{CF_ZONE_ID}/dns_records'
+  response = requests.get(url, headers=headers)
+
+  print("API Response Content:", response.text)
+
+  if response.status_code != 200:
+    print(f"Failed to fetch DNS records. Status code: {response.status_code}")
+    return []
+
+  try:
+    records = response.json().get('result', [])
+  except ValueError:
+    print("Failed to parse the response as JSON.")
+    return []
+
+  # 使用字符串比较获取 DNS 记录 ID
+  def_info = [record['id'] for record in records if isinstance(record, dict) and record['name'] == name] 
+  return def_info
+
 # 更新 DNS 记录
 def update_dns_record(record_id, name, cf_ip):
     url = f'https://api.cloudflare.com/client/v4/zones/{CF_ZONE_ID}/dns_records/{record_id}'
