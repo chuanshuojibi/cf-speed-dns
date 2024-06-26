@@ -39,11 +39,11 @@ def get_dns_records(name):
     response = requests.get(url, headers=headers)
     
     if response.status_code != 200:
-        print(f"Error fetching DNS records. Status code: {response.status_code}, Message: {response.text}")
+        print(f"Error fetching DNS records. Status code: {response.status_code}")
         return []
-
-    records = response.json().get('result', [])
-    def_info = [record['id'] for record in records if record['name'] == name]
+    
+    records = response.json().get('result', [])  # 使用get方法避免KeyError
+    def_info = [record['id'] for record in records if isinstance(record, dict) and record.get('name') == name]
     return def_info
     
 # 更新 DNS 记录
