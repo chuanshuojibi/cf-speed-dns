@@ -35,18 +35,17 @@ def get_cf_speed_test_ip(timeout=10, max_retries=5):
 
 # 获取 DNS 记录
 def get_dns_records(name):
-    def_info = []
     url = f'https://api.cloudflare.com/client/v4/zones/{CF_ZONE_ID}/dns_records'
     response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        records = response.json()['result']
-        for record in records:
-            if record['name'] == name:
-                def_info.append(record['id'])
-        return def_info
-    else:
-        print('Error fetching DNS records:', response.text)
+    
+    if response.status_code != 200:
+        print(f"Error fetching DNS records. Status code: {response.status_code}, Message: {response.text}")
+        return []
 
+    records = response.json().get('result', [])
+    def_info = [record['id'] for record in records if record['name'] == name]
+    return def_info
+    
 # 更新 DNS 记录
 def update_dns_record(record_id, name, cf_ip):
     url = f'https://api.cloudflare.com/client/v4/zones/{CF_ZONE_ID}/dns_records/{record_id}'
