@@ -40,7 +40,7 @@ def get_dns_records(name):
 
   print("API Response Content:", response.text)
 
-  if response.status_code != 200:
+ if response.status_code != 200:
     print(f"Failed to fetch DNS records. Status code: {response.status_code}")
     return []
 
@@ -65,7 +65,6 @@ def get_dns_records(name):
     print(f"No matching DNS record found for name: {name}")  # 记录未找到提示
 
   return def_info
-
 # 更新 DNS 记录
 def update_dns_record(record_id, name, cf_ip):
     url = f'https://api.cloudflare.com/client/v4/zones/{CF_ZONE_ID}/dns_records/{record_id}'
