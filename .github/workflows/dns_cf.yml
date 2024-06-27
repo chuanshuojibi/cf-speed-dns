@@ -1,25 +1,26 @@
-name: 'dns_cf_push'
+name: Daily Python Script Execution
 
 on:
   schedule:
-    - cron: '0 */6 * * *'
+    - cron: '0 0,8,16 * * *'
+  workflow_dispatch:  # 允许手动触发
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  run-python-script:
+    runs-on: ubuntu-latest # 使用Ubuntu最新版本的虚拟环境
     steps:
-      - name: 'Checkout'
-        uses: actions/checkout@v3
-      - name: 'Set up Python'
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.7
-      - name: 'Install dependencies'
-        run: if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-      - name: 'run dnscf'
-        env:
-          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-          CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
-          CF_DNS_NAME: ${{ secrets.CF_DNS_NAME }}
-          PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
-        run: python dnscf.py
+    - name: Checkout repository
+      uses: actions/checkout@v2 # 检出代码
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7 # 选择你需要的Python版本
+    - name: 'Install dependencies'
+      run: if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Execute Python script
+      env:
+        CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
+        CF_DNS_NAME: ${{ secrets.CF_DNS_NAME }}
+        PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
+      run: python dnscf.py # 执行你的Python脚本
